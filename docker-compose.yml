@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  http_server:
+    build:
+      context: ./http_server
+    ports:
+      - "5000:5000"
+      - "9100:9100"
+    networks:
+      - monitoring
+
+  http_client:
+    build:
+      context: ./http_client
+    depends_on:
+      - http_server
+    networks:
+      - monitoring
+
+  tcp_server:
+    build:
+      context: ./tcp_server
+    ports:
+      - "6000:6000"
+      - "9101:9101"
+    networks:
+      - monitoring
+
+  tcp_client:
+    build:
+      context: ./tcp_client
+    depends_on:
+      - tcp_server
+    networks:
+      - monitoring
+
+  udp_server:
+    build:
+      context: ./udp_server
+    ports:
+      - "7000:7000"
+      - "9102:9102"
+    networks:
+      - monitoring
+
+  udp_client:
+    build:
+      context: ./udp_client
+    depends_on:
+      - udp_server
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+
+networks:
+  monitoring:
