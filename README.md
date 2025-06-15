@@ -58,7 +58,76 @@ The servers expose the following Prometheus metrics:
 | `response_time_seconds_count` | Number of response time measurements       |
 | `response_time_seconds_sum`   | Sum of response times (to compute average) |
 
-Example PromQL queries:
+## 📦 Requirements
 
-```promql
-rate(packets_total[1m])
+Before running the project locally (outside Docker),
+you must install Python 3.11+ and the following dependencies:
+
+pip install -r requirements.txt
+
+## 🚀 How to Run the Project
+
+Make sure Docker and Docker Compose are installed in your computer.
+From the root of the project, build and start all services:
+docker-compose up --build
+
+Access services:
+Grafana: http://localhost:3000 (login: admin / admin)
+
+Prometheus: http://localhost:9090
+
+HTTP Server: http://localhost:5000
+
+## ✅ In Prometheus do query for all three protocols (average response time):
+
+For example average response time for udp protocol:
+
+rate(response_time_seconds_sum{protocol="udp"}[1m]) / rate(response_time_seconds_count{protocol="udp"}[1m])
+
+![prometheus](https://github.com/user-attachments/assets/8ed41038-63fd-4168-9b48-8909102b9ab7)
+
+## ✅ In Grafana: 
+
+1. Add data Source: prometheus with a connection: http://prometheus:9090, and save.
+2. Go to Dashboards and import this json for Average Response Time (per Protocol).
+   
+   {
+  "type": "timeseries",
+  "title": "Average Response Time (per Protocol)",
+  "datasource": {
+    "type": "prometheus",
+    "uid": "your-prometheus-datasource-uid"
+  },
+  "targets": [
+    {
+      "expr": "rate(response_time_seconds_sum{protocol=~\"http|tcp|udp\"}[1m]) / rate(response_time_seconds_count{protocol=~\"http|tcp|udp\"}[1m])",
+      "legendFormat": "{{protocol}}",
+      "refId": "A"
+    }
+  ],
+  "fieldConfig": {
+    "defaults": {
+      "unit": "s",
+      "decimals": 3,
+      "color": {
+        "mode": "palette-classic"
+      }
+    },
+    "overrides": []
+  },
+  "options": {
+    "legend": {
+      "displayMode": "table",
+      "placement": "bottom"
+    },
+    "tooltip": {
+      "mode": "single"
+    }
+  }
+}
+
+
+3. Save.
+   
+   ![grafana](https://github.com/user-attachments/assets/46c7a967-4a66-4c08-95de-0d46c67ba28e)
+
